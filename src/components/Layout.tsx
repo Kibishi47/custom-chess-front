@@ -1,9 +1,13 @@
 import type React from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Home, Gamepad2 } from "lucide-react"
+import { useContext } from "react"
+import { Home, Gamepad2, LogIn, User } from "lucide-react"
+import { AuthContext } from "../context/AuthContext"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation()
+  const authContext = useContext(AuthContext)
+  const user = authContext?.user
 
   return (
     <div className="min-h-screen bg-background">
@@ -17,7 +21,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Gamepad2 className="w-6 h-6" />
               Chess Game
             </Link>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
               <Link
                 to="/"
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
@@ -40,6 +44,36 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <Gamepad2 className="w-4 h-4" />
                 Jouer
               </Link>
+
+              {user ? (
+                <>
+                  <Link
+                    to="/account"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                      location.pathname === "/account"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <User className="w-4 h-4" />
+                    {user.username}
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                      location.pathname === "/login"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Connexion
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
