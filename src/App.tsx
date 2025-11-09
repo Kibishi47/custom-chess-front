@@ -10,47 +10,47 @@ import { AuthProvider } from "./context/AuthContext";
 import GuestRoute from "./components/GuestRoute";
 
 function App() {
-  return (
-    <AuthProvider>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route
-            path="/game"
-            element={
-              <ProtectedRoute>
-                <Game />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              <GuestRoute>
-                <Login />
-              </GuestRoute>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              <GuestRoute>
-                <Register />
-              </GuestRoute>
-            }
-          />
-          <Route
-            path="/account"
-            element={
-              <ProtectedRoute>
-                <Account />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </Layout>
-    </AuthProvider>
-  );
+    return (
+        <AuthProvider>
+            <Layout>
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route
+                        path="/game"
+                        element={
+                            <ProtectedRoute>
+                                <Game />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/login"
+                        element={
+                            <GuestRoute>
+                                <Login />
+                            </GuestRoute>
+                        }
+                    />
+                    <Route
+                        path="/register"
+                        element={
+                            <GuestRoute>
+                                <Register />
+                            </GuestRoute>
+                        }
+                    />
+                    <Route
+                        path="/account"
+                        element={
+                            <ProtectedRoute>
+                                <Account />
+                            </ProtectedRoute>
+                        }
+                    />
+                </Routes>
+            </Layout>
+        </AuthProvider>
+    );
 }
 
 export default App;
