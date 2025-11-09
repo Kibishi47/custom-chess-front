@@ -3,6 +3,10 @@ import { ChessSquare } from "./ChessSquare";
 import type { Piece } from "./types";
 import { useState } from "react";
 
+interface Props {
+  gameId: number;
+}
+
 const makePawns = (color: "white" | "black") => Array(8).fill(null).map(() => ({ type: "pawn", color }));
 
 const initialBoard: (Piece | null)[][] = [
@@ -34,10 +38,7 @@ const initialBoard: (Piece | null)[][] = [
   ],
 ];
 
-// const gameId = 1;
-
-export default function ChessBoard() {
-  const [gameId, setGameId] = useState(1);
+export default function ChessBoard(props: Props) {
 
   const {
     board,
@@ -47,7 +48,7 @@ export default function ChessBoard() {
     draggedPiece,
     setDraggedPiece,
     handleChangeBoard,
-  } = useChessBoard(initialBoard, gameId);
+  } = useChessBoard(initialBoard, props.gameId);
 
   const isPossibleMove = (row: number, col: number) => {
     if (!selectedSquare) return false;
@@ -123,7 +124,6 @@ export default function ChessBoard() {
             ? "Cliquez sur une case pour déplacer"
             : "Sélectionnez une pièce"}
         </div>
-        <input type="text" value={gameId} onChange={(e) => setGameId(Number(e.target.value))}/>
       </div>
     </div>
   );
