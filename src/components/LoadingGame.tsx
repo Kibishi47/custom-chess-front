@@ -1,37 +1,62 @@
-import { useAuth } from "@/context/AuthContext";
-import { GameStatus, type Game as GameClass } from "../pages/Game";
-import type { Player as PlayerClass } from "../pages/Game";
+import { User as UserClass } from "@/context/AuthContext";
 import { useEffect } from "react";
+import {
+    Game as GameClass,
+    GameStatus,
+    Player as PlayerClass,
+} from "./ChessBoard/types";
 
 interface Props {
-    game: GameClass | null;
+    user: UserClass;
     setGame: React.Dispatch<React.SetStateAction<GameClass | null>>;
+    setPlayer: React.Dispatch<React.SetStateAction<PlayerClass | null>>;
+    setOpponent: React.Dispatch<React.SetStateAction<PlayerClass | null>>;
 }
 
-export default function LoadingGame({ setGame }: Props) {
+export default function LoadingGame({
+    user,
+    setGame,
+    setPlayer,
+    setOpponent,
+}: Props) {
     function parseDataToGame(data: any): GameClass {
-        const players: PlayerClass[] = data.gamePlayers.map(
-            (playerGame: any) => {
+        return {
+            id: data.id,
+            status: data.status,
+        };
+    }
+
+    function parseDataToPlayers(data: any): PlayerClass[] {
+        return data.gamePlayers
+            .map((playerGame: any) => {
                 return {
                     username: playerGame.player.username,
                     color: playerGame.color,
                 };
-            }
-        );
-        return {
-            id: data.id,
-            status: data.status,
-            players: players,
-        };
+            })
+            .sort((a: PlayerClass, b: PlayerClass) => {
+                if (a.username === user.username) return -1;
+                if (b.username === user.username) return 1;
+                return 0;
+            });
     }
 
-    const user = useAuth().user!;
-    const endpoint = "/matchmaking";
+    function setupGame(data: any): GameClass {
+        const game = parseDataToGame(data);
+        setGame(game);
+        if (game.status !== GameStatus.Waiting) {
+            const players = parseDataToPlayers(data);
+            setPlayer(players[0]);
+            setOpponent(players[1] || null);
+        }
+
+        return game;
+    }
 
     let eventSource: EventSource | null = null;
 
     useEffect(() => {
-        fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, {
+        fetch(`${import.meta.env.VITE_API_URL}/game/join`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -40,20 +65,18 @@ export default function LoadingGame({ setGame }: Props) {
         })
             .then((res) => res.json())
             .then((data) => {
-                const game = parseDataToGame(data);
-                setGame(game);
+                const game = setupGame(data);
 
                 if (game.status === GameStatus.Waiting) {
                     eventSource = new EventSource(
                         `${import.meta.env.VITE_MERCURE_URL}${
                             import.meta.env.VITE_API_URL
-                        }${endpoint}`
+                        }/matchmaking`
                     );
 
                     eventSource.onmessage = (event) => {
                         const data = JSON.parse(event.data);
-                        const game = parseDataToGame(data);
-                        setGame(game);
+                        const game = setupGame(data);
 
                         if (game.status !== GameStatus.Waiting) {
                             eventSource!.close();
