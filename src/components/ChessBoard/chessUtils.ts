@@ -1,39 +1,72 @@
-import type { Piece, Position, MoveChange } from "./types";
+import type { Piece, PieceColor, Position, GamePieceFromApi } from "./types";
 
-export const samePiece = (a: Piece | null, b: Piece | null) =>
-  !!a && !!b && a.type === b.type && a.color === b.color;
+/**
+ * Convertit une case d'API ("a3") -> Position {row, col} en référentiel "blanc en bas".
+ */
+export function algebraicToPosition(square: string): Position {
+    const file = square[0].toLowerCase(); // a..h
+    const rank = parseInt(square[1], 10); // 1..8
 
-export const diffCells = (oldBoard: (Piece | null)[][], newBoard: (Piece | null)[][]) => {
-  const diffs: { pos: Position; oldVal: Piece | null; newVal: Piece | null }[] = [];
-  for (let row = 0; row < oldBoard.length; row++) {
-    for (let col = 0; col < oldBoard[row].length; col++) {
-      const o = oldBoard[row][col];
-      const n = newBoard[row][col];
-      if ((o === null) !== (n === null) || (o && n && !samePiece(o, n))) {
-        diffs.push({ pos: { row, col }, oldVal: o, newVal: n });
-      }
+    const col = file.charCodeAt(0) - "a".charCodeAt(0); // a => 0
+    const row = 8 - rank; // 8 => 0, 1 => 7
+
+    return { row, col };
+}
+
+/**
+ * Convertit une Position {row, col} -> "a3" en référentiel "blanc en bas".
+ */
+export function positionToAlgebraic(pos: Position): string {
+    const file = String.fromCharCode("a".charCodeAt(0) + pos.col);
+    const rank = 8 - pos.row;
+    return `${file}${rank}`;
+}
+
+/**
+ * Génère le board interne (référentiel "blanc en bas") à partir des pièces de l'API.
+ */
+export function generateBoardFromPieces(
+    pieces: GamePieceFromApi[]
+): (Piece | null)[][] {
+    const board: (Piece | null)[][] = Array.from({ length: 8 }, () =>
+        Array<Piece | null>(8).fill(null)
+    );
+
+    for (const p of pieces) {
+        const { row, col } = algebraicToPosition(p.square);
+        board[row][col] = { type: p.key, color: p.color };
     }
-  }
-  return diffs;
-};
 
-export const detectBoardChange = (
-  oldBoard: (Piece | null)[][],
-  newBoard: (Piece | null)[][]
-): MoveChange | null => {
-  const diffs = diffCells(oldBoard, newBoard);
-  if (diffs.length === 0) return null;
+    return board;
+}
 
-  if (diffs.length === 2) {
-    const [a, b] = diffs;
-    const from = [a, b].find(d => d.oldVal && !d.newVal);
-    const to = [a, b].find(d => d.newVal && !d.oldVal);
-    if (from?.oldVal && to?.newVal) {
-      const captured = to.oldVal && to.oldVal.color !== from.oldVal.color ? to.oldVal : null;
-      return { from: from.pos, to: to.pos, pieceBefore: from.oldVal, pieceAfter: to.newVal, captured };
-    }
-  }
-  return null;
-};
+/**
+ * Mapping coordonnées "affichage" -> "board interne" selon la perspective du joueur.
+ *
+ * - Pour les blancs : (row, col) identiques.
+ * - Pour les noirs : plateau tourné à 180°.
+ */
+export function displayToBoardPosition(
+    displayPos: Position,
+    perspective: PieceColor
+): Position {
+    if (perspective === "white") return displayPos;
+    return {
+        row: 7 - displayPos.row,
+        col: 7 - displayPos.col,
+    };
+}
 
-export const caseName = (row: number, col: number) => `${row}-${col}`;
+/**
+ * Inverse : board interne -> coordonnées d'affichage.
+ */
+export function boardToDisplayPosition(
+    boardPos: Position,
+    perspective: PieceColor
+): Position {
+    if (perspective === "white") return boardPos;
+    return {
+        row: 7 - boardPos.row,
+        col: 7 - boardPos.col,
+    };
+}

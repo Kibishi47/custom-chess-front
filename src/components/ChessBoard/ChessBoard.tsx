@@ -1,141 +1,86 @@
 import { useChessBoard } from "./useChessBoard";
 import { ChessSquare } from "./ChessSquare";
-import type { Piece } from "./types";
-import { useState } from "react";
+import type {
+    Game as GameClass,
+    Player as PlayerClass,
+    Position,
+} from "./types";
+import {
+    boardToDisplayPosition,
+    positionToAlgebraic,
+    displayToBoardPosition,
+} from "./chessUtils";
 
 interface Props {
-    gameId: number;
+    game: GameClass;
+    player: PlayerClass;
+    opponent: PlayerClass;
 }
 
-const makePawns = (color: "white" | "black") =>
-    Array(8)
-        .fill(null)
-        .map(() => ({ type: "pawn", color }));
+export default function ChessBoard({ game, player, opponent }: Props) {
+    const { board, selectedSquare, legalTargets, isMyTurn, handleSquareClick } =
+        useChessBoard(game, player);
 
-const initialBoard: (Piece | null)[][] = [
-    [
-        { type: "rook", color: "black" },
-        { type: "knight", color: "black" },
-        { type: "bishop", color: "black" },
-        { type: "queen", color: "black" },
-        { type: "king", color: "black" },
-        { type: "bishop", color: "black" },
-        { type: "knight", color: "black" },
-        { type: "rook", color: "black" },
-    ],
-    makePawns("black"),
-    Array(8).fill(null),
-    Array(8).fill(null),
-    Array(8).fill(null),
-    Array(8).fill(null),
-    makePawns("white"),
-    [
-        { type: "rook", color: "white" },
-        { type: "knight", color: "white" },
-        { type: "bishop", color: "white" },
-        { type: "queen", color: "white" },
-        { type: "king", color: "white" },
-        { type: "bishop", color: "white" },
-        { type: "knight", color: "white" },
-        { type: "rook", color: "white" },
-    ],
-];
+    // Pour chaque case d'affichage, on doit savoir :
+    // - la pièce (en tenant compte de la rotation)
+    // - si elle est sélectionnée
+    // - si elle fait partie des coups légaux
+    const renderSquares = () => {
+        const squares: JSX.Element[] = [];
 
-export default function ChessBoard({ gameId }: Props) {
-    const {
-        board,
-        setBoard,
-        selectedSquare,
-        setSelectedSquare,
-        draggedPiece,
-        setDraggedPiece,
-        handleChangeBoard,
-    } = useChessBoard(initialBoard, gameId);
+        for (let displayRow = 0; displayRow < 8; displayRow++) {
+            for (let displayCol = 0; displayCol < 8; displayCol++) {
+                const boardPos = displayToBoardPosition(
+                    { row: displayRow, col: displayCol },
+                    player.color
+                );
 
-    const isPossibleMove = (row: number, col: number) => {
-        if (!selectedSquare) return false;
-        return !(selectedSquare.row === row && selectedSquare.col === col);
-    };
+                const piece = board[boardPos.row][boardPos.col];
 
-    const handleSquareClick = (row: number, col: number) => {
-        const piece = board[row][col];
-        if (selectedSquare) {
-            if (selectedSquare.row === row && selectedSquare.col === col) {
-                setSelectedSquare(null);
-                return;
+                const isSelected =
+                    selectedSquare &&
+                    selectedSquare.row === boardPos.row &&
+                    selectedSquare.col === boardPos.col;
+
+                const algebraic = positionToAlgebraic(boardPos);
+                const isLegalTarget = legalTargets.includes(algebraic);
+
+                squares.push(
+                    <ChessSquare
+                        key={`${displayRow}-${displayCol}`}
+                        piece={piece}
+                        row={displayRow}
+                        col={displayCol}
+                        isSelected={!!isSelected}
+                        isLegalTarget={isLegalTarget}
+                        onClick={() =>
+                            handleSquareClick(displayRow, displayCol)
+                        }
+                    />
+                );
             }
-            const newBoard = board.map((r) => [...r]);
-            newBoard[row][col] = board[selectedSquare.row][selectedSquare.col];
-            newBoard[selectedSquare.row][selectedSquare.col] = null;
-            handleChangeBoard(board, newBoard);
-            setBoard(newBoard);
-            setSelectedSquare(null);
-        } else if (piece) {
-            setSelectedSquare({ row, col });
         }
+
+        return squares;
     };
 
     return (
         <div className="flex flex-col items-center gap-6">
             <div className="inline-block p-4 md:p-6 bg-card rounded-xl shadow-2xl border border-border">
                 <div className="grid grid-cols-8 gap-0 border-2 border-foreground/20 rounded-lg overflow-hidden">
-                    {board.map((row, rowIndex) =>
-                        row.map((piece, colIndex) => (
-                            <ChessSquare
-                                key={`${rowIndex}-${colIndex}`}
-                                piece={piece}
-                                row={rowIndex}
-                                col={colIndex}
-                                isSelected={
-                                    selectedSquare?.row === rowIndex &&
-                                    selectedSquare?.col === colIndex
-                                }
-                                isPossibleMove={isPossibleMove(
-                                    rowIndex,
-                                    colIndex
-                                )}
-                                onClick={() =>
-                                    handleSquareClick(rowIndex, colIndex)
-                                }
-                                onDrop={(e) => {
-                                    e.preventDefault();
-                                    if (!draggedPiece) return;
-                                    const newBoard = board.map((r) => [...r]);
-                                    newBoard[rowIndex][colIndex] =
-                                        draggedPiece.piece;
-                                    newBoard[draggedPiece.from.row][
-                                        draggedPiece.from.col
-                                    ] = null;
-                                    handleChangeBoard(board, newBoard);
-                                    setBoard(newBoard);
-                                    setDraggedPiece(null);
-                                    setSelectedSquare(null);
-                                }}
-                                onDragStart={(e, p) =>
-                                    setDraggedPiece({
-                                        piece: p,
-                                        from: { row: rowIndex, col: colIndex },
-                                    })
-                                }
-                                onDragEnd={() => setDraggedPiece(null)}
-                                onDragOver={(e) => e.preventDefault()}
-                            />
-                        ))
-                    )}
+                    {renderSquares()}
                 </div>
             </div>
 
-            <div className="flex gap-4 items-center flex-wrap justify-center">
-                <button
-                    onClick={() => setBoard(initialBoard)}
-                    className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity shadow-lg"
-                >
-                    Réinitialiser
-                </button>
-                <div className="text-sm text-muted-foreground px-4 py-2 bg-muted rounded-lg">
-                    {selectedSquare
-                        ? "Cliquez sur une case pour déplacer"
-                        : "Sélectionnez une pièce"}
+            <div className="flex flex-col gap-2 items-center">
+                <div className="text-sm text-muted-foreground">
+                    {isMyTurn
+                        ? "À votre tour de jouer"
+                        : `En attente du coup de ${opponent.username}`}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                    Vous êtes les pièces{" "}
+                    {player.color === "white" ? "blanches" : "noires"}
                 </div>
             </div>
         </div>
