@@ -32,6 +32,12 @@ export function useChessBoard(game: Game, player: Player): UseChessBoardResult {
         setLegalTargets([]);
     }, [game.pieces]);
 
+    const getLegalMove = (position: Position): string[] => {
+        const fromAlgebraic = positionToAlgebraic(position);
+        const moves = game.legalMoves[fromAlgebraic] || [];
+        return moves;
+    };
+
     const handleSquareClick = (displayRow: number, displayCol: number) => {
         const boardPos: Position = displayToBoardPosition(
             { row: displayRow, col: displayCol },
@@ -41,8 +47,8 @@ export function useChessBoard(game: Game, player: Player): UseChessBoardResult {
 
         // Si une case est déjà sélectionnée, on essaie de jouer un coup
         if (selectedSquare) {
+            const targets = getLegalMove(selectedSquare);
             const fromAlgebraic = positionToAlgebraic(selectedSquare);
-            const targets = game.legalMoves[fromAlgebraic] || [];
             const toAlgebraic = positionToAlgebraic(boardPos);
 
             // Le coup est-il légal ?
@@ -72,6 +78,15 @@ export function useChessBoard(game: Game, player: Player): UseChessBoardResult {
                 }).catch(() => {
                     // En cas d'erreur réseau, Mercure finira par resynchroniser
                 });
+            } else if (
+                piece &&
+                (selectedSquare.row !== boardPos.row ||
+                    selectedSquare.col !== boardPos.col)
+            ) {
+                const moves = getLegalMove(boardPos);
+                setSelectedSquare(boardPos);
+                setLegalTargets(moves);
+                return;
             }
 
             // Dans tous les cas, on clear la sélection
@@ -89,8 +104,7 @@ export function useChessBoard(game: Game, player: Player): UseChessBoardResult {
         // On ne peut jouer que si c'est son tour
         if (!isMyTurn) return;
 
-        const fromAlgebraic = positionToAlgebraic(boardPos);
-        const moves = game.legalMoves[fromAlgebraic] || [];
+        const moves = getLegalMove(boardPos);
 
         setSelectedSquare(boardPos);
         setLegalTargets(moves);
