@@ -18,35 +18,18 @@ interface Props {
 }
 
 export default function ChessBoard({ game, player, opponent }: Props) {
-    const { board, selectedSquare, legalTargets, isMyTurn, handleSquareClick } =
-        useChessBoard(game, player);
+    const {
+        board,
+        selectedSquare,
+        legalTargets,
+        isMyTurn,
+        kingInCheck,
+        endResult,
+        showModal,
+        setShowModal,
+        handleSquareClick,
+    } = useChessBoard(game, player, opponent);
 
-    // Position du roi en échec
-    let kingInCheck: { row: number; col: number } | null = null;
-
-    if (game.check?.white || game.check?.black) {
-        const colorInCheck: "white" | "black" = game.check.white
-            ? "white"
-            : "black";
-
-        for (let row = 0; row < 8; row++) {
-            for (let col = 0; col < 8; col++) {
-                const piece = board[row][col];
-                if (
-                    piece &&
-                    piece.type === "king" &&
-                    piece.color === colorInCheck
-                ) {
-                    kingInCheck = { row, col };
-                }
-            }
-        }
-    }
-
-    // Pour chaque case d'affichage, on doit savoir :
-    // - la pièce (en tenant compte de la rotation)
-    // - si elle est sélectionnée
-    // - si elle fait partie des coups légaux
     const renderSquares = () => {
         const squares: JSX.Element[] = [];
 
@@ -56,10 +39,6 @@ export default function ChessBoard({ game, player, opponent }: Props) {
                     { row: displayRow, col: displayCol },
                     player.color
                 );
-                const isInCheck =
-                    kingInCheck &&
-                    kingInCheck.row === boardPos.row &&
-                    kingInCheck.col === boardPos.col;
 
                 const piece = board[boardPos.row][boardPos.col];
 
@@ -71,6 +50,11 @@ export default function ChessBoard({ game, player, opponent }: Props) {
                 const algebraic = positionToAlgebraic(boardPos);
                 const isLegalTarget = legalTargets.includes(algebraic);
 
+                const isInCheck =
+                    kingInCheck &&
+                    kingInCheck.row === boardPos.row &&
+                    kingInCheck.col === boardPos.col;
+
                 squares.push(
                     <ChessSquare
                         key={`${displayRow}-${displayCol}`}
@@ -79,7 +63,7 @@ export default function ChessBoard({ game, player, opponent }: Props) {
                         col={displayCol}
                         isSelected={!!isSelected}
                         isLegalTarget={isLegalTarget}
-                        isInCheck={isInCheck ?? false}
+                        isInCheck={!!isInCheck}
                         onClick={() =>
                             handleSquareClick(displayRow, displayCol)
                         }
@@ -91,24 +75,84 @@ export default function ChessBoard({ game, player, opponent }: Props) {
         return squares;
     };
 
+    // -------------------------
+    // MODAL FIN DE PARTIE
+    // -------------------------
+    const EndGameModal = () => {
+        if (!endResult || !showModal) return null;
+
+        return (
+            <div
+                className="fixed inset-0 z-50 flex items-center justify-center"
+                onClick={() => setShowModal(false)}
+            >
+                <div className="absolute inset-0"></div>
+
+                <div
+                    className="relative bg-card border border-border rounded-xl p-8 shadow-2xl text-center max-w-md w-full mx-4 animate-in fade-in zoom-in z-10"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <h2 className="text-3xl font-bold text-foreground mb-4">
+                        {endResult.title}
+                    </h2>
+
+                    <p className="text-muted-foreground mb-8 text-lg">
+                        {endResult.message}
+                    </p>
+
+                    <button
+                        onClick={() => (window.location.href = "/")}
+                        className="bg-primary text-primary-foreground font-medium px-6 py-2 rounded-md hover:bg-primary/90 transition-colors"
+                    >
+                        Retour à l’accueil
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    // ----------------------------------
+    // RENDER PRINCIPAL
+    // ----------------------------------
     return (
-        <div className="flex flex-col items-center gap-6">
+        <div className="flex flex-col items-center gap-6 relative">
+            {/* Modal fin */}
+            <EndGameModal />
+
+            {/* Plateau */}
             <div className="inline-block p-4 md:p-6 bg-card rounded-xl shadow-2xl border border-border">
                 <div className="grid grid-cols-8 gap-0 border-2 border-foreground/20 rounded-lg overflow-hidden">
                     {renderSquares()}
                 </div>
             </div>
 
-            <div className="flex flex-col gap-2 items-center">
-                <div className="text-sm text-muted-foreground">
-                    {isMyTurn
-                        ? "À votre tour de jouer"
-                        : `En attente du coup de ${opponent.username}`}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                    Vous êtes les pièces{" "}
-                    {player.color === "white" ? "blanches" : "noires"}
-                </div>
+            {/* Messages sous l'échiquier */}
+            <div className="flex flex-col gap-2 items-center mt-4">
+                {!endResult && (
+                    <>
+                        <div className="text-sm text-muted-foreground">
+                            {isMyTurn
+                                ? "À votre tour de jouer"
+                                : `En attente du coup de ${opponent.username}`}
+                        </div>
+
+                        <div className="text-xs text-muted-foreground">
+                            Vous êtes les pièces{" "}
+                            {player.color === "white" ? "blanches" : "noires"}
+                        </div>
+                    </>
+                )}
+
+                {endResult && (
+                    <div className="text-center mt-4">
+                        <p className="text-xl font-bold text-foreground">
+                            {endResult.title}
+                        </p>
+                        <p className="text-muted-foreground">
+                            {endResult.message}
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     );
