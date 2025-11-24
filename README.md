@@ -1,73 +1,103 @@
-# React + TypeScript + Vite
+# ♟️ Jeu d'Échecs Multijoueur – Frontend React
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Ce projet est l’interface front-end d’un **jeu d’échecs multijoueur en temps réel**, basé sur :
 
-Currently, two official plugins are available:
+- Une **API Symfony** pour la logique du jeu  
+- **Mercure** pour la synchronisation instantanée entre joueurs  
+- Un frontend moderne en **React + TypeScript**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Backend disponible ici :  
+👉 https://github.com/Kibishi47/custom-chess
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+# 🚀 Installation
 
-## Expanding the ESLint configuration
+## 1. Installer les dépendances
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 2. Configurer les variables d’environnement
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Copier le fichier exemple :
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cp .env.example .env
 ```
+
+Puis éditer `.env` et remplir :
+
+```
+VITE_API_URL=...
+VITE_MERCURE_URL=...
+```
+
+## 3. Lancer le projet
+
+```bash
+npm run dev
+```
+
+Le site démarre sur :
+
+```
+http://localhost:5173
+```
+
+---
+
+# 🖥️ Fonctionnement du site
+
+### 🔐 Authentification
+- Inscription (`/register`)
+- Connexion (`/login`)
+- Page profil utilisateur (`/account`)
+
+### ♟️ Jeu d’échecs
+- Sélection du type de plateau (`/game/select`)
+- Recherche automatique de partie (`POST /api/game/join`)
+- Affichage interactif du plateau
+- Détection et highlight du roi en échec
+- Mise à jour en temps réel via **Mercure**
+- Détection automatique :
+  - Victoire
+  - Défaite
+  - Pat
+- Modal de fin de partie + résumé sous le plateau
+
+---
+
+# 🔌 API Symfony & Mercure
+
+### Endpoints utilisés
+
+```
+POST /api/game/join         → rejoindre une partie
+POST /api/{gameId}/moves    → jouer un coup
+POST /api/game/quit         → quitter une partie
+GET  /api/game/types        → liste des plateaux disponibles
+```
+
+### Flux Mercure
+
+Un flux Mercure est ouvert pour chaque partie :
+
+```
+/game/{id}
+```
+
+Le front reçoit en direct :
+- l’état du plateau
+- le joueur dont c’est le tour
+- les coups légaux
+- les mises en échec
+- les fins de partie
+
+---
+
+# 📄 Notes
+
+Ce dépôt ne contient **que le front-end**.  
+Le backend Symfony + Mercure doit être installé séparément (voir lien en haut du document).
