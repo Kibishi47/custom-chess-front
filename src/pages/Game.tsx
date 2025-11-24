@@ -56,10 +56,7 @@ export default function Game() {
     };
 
     const handleGameStatus = (game: GameClass): void => {
-        if (
-            game.status === GameStatus.Finished ||
-            game.status === GameStatus.Cancelled
-        ) {
+        if (game.status === GameStatus.Cancelled) {
             navigate("/");
         }
     };
@@ -132,7 +129,8 @@ export default function Game() {
                 {game &&
                     player &&
                     opponent &&
-                    game.status === GameStatus.Ongoing && (
+                    (game.status === GameStatus.Ongoing ||
+                        game.status === GameStatus.Finished) && (
                         <ChessBoard
                             game={game}
                             player={player}
