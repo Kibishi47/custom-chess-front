@@ -21,6 +21,28 @@ export default function ChessBoard({ game, player, opponent }: Props) {
     const { board, selectedSquare, legalTargets, isMyTurn, handleSquareClick } =
         useChessBoard(game, player);
 
+    // Position du roi en échec
+    let kingInCheck: { row: number; col: number } | null = null;
+
+    if (game.check?.white || game.check?.black) {
+        const colorInCheck: "white" | "black" = game.check.white
+            ? "white"
+            : "black";
+
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const piece = board[row][col];
+                if (
+                    piece &&
+                    piece.type === "king" &&
+                    piece.color === colorInCheck
+                ) {
+                    kingInCheck = { row, col };
+                }
+            }
+        }
+    }
+
     // Pour chaque case d'affichage, on doit savoir :
     // - la pièce (en tenant compte de la rotation)
     // - si elle est sélectionnée
@@ -34,6 +56,10 @@ export default function ChessBoard({ game, player, opponent }: Props) {
                     { row: displayRow, col: displayCol },
                     player.color
                 );
+                const isInCheck =
+                    kingInCheck &&
+                    kingInCheck.row === boardPos.row &&
+                    kingInCheck.col === boardPos.col;
 
                 const piece = board[boardPos.row][boardPos.col];
 
@@ -53,6 +79,7 @@ export default function ChessBoard({ game, player, opponent }: Props) {
                         col={displayCol}
                         isSelected={!!isSelected}
                         isLegalTarget={isLegalTarget}
+                        isInCheck={isInCheck ?? false}
                         onClick={() =>
                             handleSquareClick(displayRow, displayCol)
                         }

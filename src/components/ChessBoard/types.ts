@@ -42,4 +42,5 @@ export interface Game {
     legalMoves: Record<string, string[]>;
     pieces: GamePieceFromApi[];
     players: Player[];
+    check?: Record<PieceColor, boolean>;
 }

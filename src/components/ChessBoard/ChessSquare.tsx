@@ -7,6 +7,7 @@ interface Props {
     col: number;
     isSelected: boolean;
     isLegalTarget: boolean;
+    isInCheck: boolean;
     onClick: () => void;
 }
 
@@ -35,6 +36,7 @@ export function ChessSquare({
     col,
     isSelected,
     isLegalTarget,
+    isInCheck,
     onClick,
 }: Props) {
     const isLightSquare = (row + col) % 2 === 0;
@@ -51,6 +53,11 @@ export function ChessSquare({
             )}
             onClick={onClick}
         >
+            {/* Roi en échec */}
+            {isInCheck && (
+                <div className="absolute inset-0 border-[4px] border-red-500 rounded-sm z-30 animate-pulse shadow-[0_0_15px_rgba(255,0,0,0.7)] pointer-events-none" />
+            )}
+
             {/* Sélection de la pièce */}
             {isSelected && (
                 <div className="absolute inset-0 border-[3px] border-accent pointer-events-none z-40 rounded-sm shadow-lg shadow-accent/50" />

@@ -33,6 +33,7 @@ export default function Game() {
                 username: gp.player.username,
                 color: gp.color as PieceColor,
             })),
+            check: data.check ?? { white: false, black: false },
         };
     };
 
