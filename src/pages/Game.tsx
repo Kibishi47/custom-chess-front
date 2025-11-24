@@ -1,4 +1,3 @@
-// src/pages/Game.tsx
 import { useEffect, useRef, useState } from "react";
 import ChessBoard from "@/components/ChessBoard/ChessBoard";
 import LoadingGame from "@/components/LoadingGame";
@@ -12,9 +11,12 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function Game() {
-    const [params] = useSearchParams();
-    const boardType = params.get("boardType") ?? "standard";
     const navigate = useNavigate();
+
+    const [params] = useSearchParams();
+    const boardType = params.get("boardType");
+    if (!boardType) navigate("/game/select");
+
     const [game, setGame] = useState<GameClass | null>(null);
     const [player, setPlayer] = useState<PlayerClass | null>(null);
     const [opponent, setOpponent] = useState<PlayerClass | null>(null);

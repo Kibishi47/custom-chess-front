@@ -34,7 +34,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                                 Accueil
                             </Link>
                             <Link
-                                to="/game/select"
+                                to="/game"
                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                                     location.pathname.startsWith("/game")
                                         ? "bg-primary text-primary-foreground"

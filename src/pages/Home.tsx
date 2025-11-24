@@ -20,7 +20,7 @@ export default function Home() {
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                     <Link
-                        to="/game/select"
+                        to="/game"
                         className="group px-8 py-4 bg-primary text-primary-foreground rounded-lg font-semibold text-lg hover:opacity-90 transition-all flex items-center gap-2 shadow-lg hover:shadow-xl"
                     >
                         <Zap className="w-5 h-5 group-hover:scale-110 transition-transform" />
