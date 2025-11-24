@@ -8,6 +8,7 @@ import Account from "./pages/Account";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import GuestRoute from "./components/GuestRoute";
+import GameSelect from "./pages/GameSelect";
 
 function App() {
     return (
@@ -20,6 +21,14 @@ function App() {
                         element={
                             <ProtectedRoute>
                                 <Game />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/game/select"
+                        element={
+                            <ProtectedRoute>
+                                <GameSelect />
                             </ProtectedRoute>
                         }
                     />

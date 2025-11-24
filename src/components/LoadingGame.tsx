@@ -4,9 +4,10 @@ import { useEffect } from "react";
 interface Props {
     user: UserClass;
     setupGame: (data: any) => void;
+    boardType: string;
 }
 
-export default function LoadingGame({ user, setupGame }: Props) {
+export default function LoadingGame({ user, setupGame, boardType }: Props) {
     useEffect(() => {
         fetch(`${import.meta.env.VITE_API_URL}/game/join`, {
             method: "POST",
@@ -15,7 +16,7 @@ export default function LoadingGame({ user, setupGame }: Props) {
                 Authorization: `Bearer ${user.token}`,
             },
             body: JSON.stringify({
-                boardType: "standard",
+                boardType,
             }),
         })
             .then((res) => res.json())
@@ -25,7 +26,7 @@ export default function LoadingGame({ user, setupGame }: Props) {
             .catch((err) => {
                 console.error("Erreur matchmaking :", err);
             });
-    }, []);
+    }, [boardType]);
 
     return (
         <div className="text-center text-muted-foreground">

@@ -9,9 +9,11 @@ import {
     PieceColor,
 } from "@/components/ChessBoard/types";
 import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function Game() {
+    const [params] = useSearchParams();
+    const boardType = params.get("boardType") ?? "standard";
     const navigate = useNavigate();
     const [game, setGame] = useState<GameClass | null>(null);
     const [player, setPlayer] = useState<PlayerClass | null>(null);
@@ -120,7 +122,11 @@ export default function Game() {
                     game.status === GameStatus.Waiting ||
                     !player ||
                     !opponent) && (
-                    <LoadingGame user={user} setupGame={setupGame} />
+                    <LoadingGame
+                        user={user}
+                        setupGame={setupGame}
+                        boardType={boardType}
+                    />
                 )}
                 {game &&
                     player &&
